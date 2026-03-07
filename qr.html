@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nebula Bot — QR Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: rgba(255,255,255,0.07);
+      --text: #f1f1f3;
+      --muted: rgba(255,255,255,0.35);
+      --accent: #6366f1;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px; overflow: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 360px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 28px;
+      animation: fadeUp 0.5s ease forwards;
+      opacity: 0; transform: translateY(16px);
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    .header { text-align: center; }
+    .back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--muted);
+      text-decoration: none; margin-bottom: 20px;
+      transition: color 0.2s;
+    }
+    .back:hover { color: var(--text); }
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 6px; }
+    .subtitle { font-size: 0.8rem; color: var(--muted); }
+
+    .card {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 20px;
+    }
+
+    /* QR frame */
+    .qr-wrap {
+      width: 220px; height: 220px;
+      border-radius: 16px;
+      background: white;
+      padding: 10px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      box-shadow: 0 0 0 1px var(--border);
+    }
+    #qr-img {
+      width: 100%; height: 100%;
+      object-fit: contain; border-radius: 8px;
+      display: block;
+    }
+    .qr-expired-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(10,10,15,0.92);
+      border-radius: 16px;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; text-align: center;
+    }
+    .qr-expired-overlay.show { display: flex; }
+    .qr-expired-overlay span { font-size: 0.8rem; color: var(--muted); }
+
+    /* Progress */
+    .progress-wrap { width: 100%; }
+    .progress-top {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .progress-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 1px; }
+    #countdown { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text); }
+    #countdown.warn { color: var(--orange); }
+    #countdown.expired { color: var(--red); }
+
+    .progress-track {
+      width: 100%; height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px; overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 1s linear, background 0.3s;
+      width: 100%;
+    }
+
+    /* Steps */
+    .steps {
+      width: 100%;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    .step {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.75rem; color: var(--muted); line-height: 1.5;
+    }
+    .step-num {
+      width: 18px; height: 18px;
+      background: rgba(99,102,241,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 600; color: var(--accent);
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step strong { color: rgba(255,255,255,0.6); }
+
+    /* Reload btn */
+    .reload-btn {
+      padding: 10px 24px;
+      background: var(--accent);
+      border: none; border-radius: 10px;
+      font-size: 0.8rem; font-weight: 600;
+      color: white; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+      display: inline-block;
+    }
+    .reload-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    footer {
+      font-size: 0.65rem; color: rgba(255,255,255,0.15); letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <a href="/" class="back">← Retour</a>
+      <h1>QR Code</h1>
+      <p class="subtitle">Scanne avec WhatsApp pour te connecter</p>
+    </div>
+
+    <div class="card">
+      <div class="qr-wrap">
+        <img id="qr-img" src="/server" alt="QR Code">
+        <div class="qr-expired-overlay" id="expired-overlay">
+          <span style="font-size:1.5rem">⏳</span>
+          <span>QR Code expiré</span>
+          <a href="javascript:location.reload()" class="reload-btn">Recharger</a>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span class="progress-label">Expiration</span>
+          <span id="countdown">30s</span>
+        </div>
+        <div class="progress-track">
+          <div id="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <span>Ouvre <strong>WhatsApp</strong> sur ton téléphone</span>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <span>Va dans <strong>Appareils liés</strong> → <strong>Scanner un QR code</strong></span>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <span>Pointe la caméra vers ce <strong>QR code</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <footer>Nebula Bot © <span id="yr"></span> — Dark Neon</footer>
+  </div>
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    const TOTAL = 30;
+    let left = TOTAL;
+    const countdownEl = document.getElementById('countdown');
+    const fillEl      = document.getElementById('progress-fill');
+    const overlayEl   = document.getElementById('expired-overlay');
+
+    const timer = setInterval(() => {
+      left--;
+      const pct = (left / TOTAL) * 100;
+      fillEl.style.width = pct + '%';
+      countdownEl.textContent = left + 's';
+
+      if (left <= 10 && left > 0) {
+        countdownEl.classList.add('warn');
+        fillEl.style.background = '#f97316';
+      }
+      if (left <= 0) {
+        clearInterval(timer);
+        countdownEl.textContent = 'Expiré';
+        countdownEl.classList.remove('warn');
+        countdownEl.classList.add('expired');
+        fillEl.style.width = '0%';
+        overlayEl.classList.add('show');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

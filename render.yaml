@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: nebula-session
+    runtime: node
+    buildCommand: npm install --legacy-peer-deps
+    startCommand: node index.js
+    envVars:
+      - key: MEGA_EMAIL
+        sync: false
+      - key: MEGA_PASSWORD
+        sync: false

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nebula Bot — Session</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(99,102,241,0.5);
+      --text: #f1f1f3;
+      --muted: rgba(255,255,255,0.35);
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --green: #22c55e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      animation: fadeUp 0.6s ease forwards;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 0 30px rgba(99,102,241,0.3);
+    }
+    .logo-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+    .logo-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: -4px;
+    }
+
+    /* Card */
+    .card {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-label {
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 18px;
+      border-radius: 12px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn:hover {
+      border-color: var(--border-hover);
+      background: rgba(99,102,241,0.06);
+      transform: translateY(-1px);
+    }
+    .btn-left {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .btn-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .btn-icon.qr  { background: rgba(34,197,94,0.12); }
+    .btn-icon.pair { background: rgba(99,102,241,0.12); }
+    .btn-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .btn-desc {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .btn-arrow {
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: transform 0.2s, color 0.2s;
+    }
+    .btn:hover .btn-arrow { transform: translateX(4px); color: var(--accent); }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 2px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 0.6rem; color: var(--muted); letter-spacing: 2px; }
+
+    /* Status */
+    .status {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.7rem; color: var(--muted);
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* Footer */
+    footer {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-name">NEBULA BOT</div>
+        <div class="logo-sub">Session Manager</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">Connexion WhatsApp</p>
+
+      <a href="/pair" class="btn" target="_blank">
+        <div class="btn-left">
+          <div class="btn-icon pair">🔗</div>
+          <div>
+            <div class="btn-title">Pairing Code</div>
+            <div class="btn-desc">Connecte-toi avec un code à 8 chiffres</div>
+          </div>
+        </div>
+        <span class="btn-arrow">›</span>
+      </a>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">OU</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <a href="/qr" class="btn" target="_blank">
+        <div class="btn-left">
+          <div class="btn-icon qr">⬜</div>
+          <div>
+            <div class="btn-title">QR Code</div>
+            <div class="btn-desc">Scanne le code avec WhatsApp</div>
+          </div>
+        </div>
+        <span class="btn-arrow">›</span>
+      </a>
+    </div>
+
+    <a href="/dashboard" class="btn" target="_blank" style="border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.04);margin-bottom:8px">
+          <div class="btn-left">
+            <div class="btn-icon" style="background:rgba(251,191,36,0.12)">👑</div>
+            <div>
+              <div class="btn-title">Dashboard Owner</div>
+              <div class="btn-desc">Gérer les paramètres du bot</div>
+            </div>
+          </div>
+          <span class="btn-arrow" style="color:rgba(251,191,36,0.6)">›</span>
+        </a>
+
+    <div class="status">
+      <div class="dot"></div>
+      <span>Serveur opérationnel</span>
+    </div>
+
+    <footer>Nebula Bot © <span id="yr"></span> — Dark Neon</footer>
+  </div>
+
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

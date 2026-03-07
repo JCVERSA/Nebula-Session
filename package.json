@@ -1,0 +1,29 @@
+{
+  "name": "nebula-session",
+  "version": "1.0.0",
+  "description": "Nebula Bot — WhatsApp Session Pairing Server",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.18",
+    "@adiwajshing/keyed-db": "^0.2.4",
+    "@hapi/boom": "^10.0.1",
+    "async-mutex": "0.4.1",
+    "awesome-phonenumber": "^2.64.0",
+    "axios": "^1.9.0",
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "megajs": "1.1.7",
+    "phone": "3.1.30",
+    "pino": "^8.21.0",
+    "qrcode": "^1.5.3",
+    "path": "^0.12.7"
+  }
+}
